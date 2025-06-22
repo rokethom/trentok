@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Trend Finder - Cari Tren & Visual AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #25f4ee, #f00f5b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .result-card h3 {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #f0f0f0;
+        }
+        .result-card h3 svg {
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f00f5b;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .image-loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #25f4ee;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .content-idea {
+            background-color: #2d3748; /* bg-gray-700 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #f00f5b;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-4">
+
+    <div class="w-full max-w-3xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold gradient-text mb-2">TikTok Trend Finder</h1>
+            <p class="text-lg text-gray-400">Temukan Tren, Ide Konten, dan Hasilkan Visual dengan AI</p>
+        </header>
+
+        <!-- Search Form -->
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 mb-8">
+            <form id="trend-form">
+                <label for="niche-input" class="block text-lg font-medium text-gray-200 mb-2">Masukkan Niche / Topik Konten Anda</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="text" id="niche-input" placeholder="Contoh: review makanan, tips makeup, gaming..." class="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all">
+                    <button type="submit" id="search-button" class="bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors duration-300 flex items-center justify-center shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m21 21-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/><path d="M3.6 9h16.8"/><path d="M3.6 15h7.2"/><path d="M11.5 3a17 17 0 0 0 0 18"/></svg>
+                        Cari Tren
+                    </button>
+                </div>
+                 <p id="error-message" class="text-red-400 mt-2 text-sm hidden">Harap masukkan niche atau topik terlebih dahulu.</p>
+            </form>
+        </div>
+
+        <!-- Main Loader -->
+        <div id="loader-container" class="text-center my-8 hidden">
+            <div class="loader inline-block"></div>
+            <p class="text-gray-400 mt-4">AI sedang menganalisis tren untuk Anda... Mohon tunggu sebentar.</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-container" class="hidden space-y-6">
+             <!-- Keywords and Hashtags -->
+            <div class="result-card bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#25f4ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13a6 6 0 1 0 12 0 6 6 0 1 0-12 0M2 13h17a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v6"/><path d="M19 13h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-6"/></svg>
+                    Rekomendasi Keyword & Hashtag
+                </h3>
+                <div id="keywords-output" class="text-gray-300"></div>
+            </div>
+            
+            <!-- Content Ideas -->
+            <div class="result-card bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f00f5b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    Ide Konten Viral & Visual AI
+                </h3>
+                <div id="content-output" class="text-gray-300 space-y-4"></div>
+            </div>
+
+            <!-- Music/Sound Recommendations -->
+            <div class="result-card bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#25f4ee" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                    Rekomendasi Musik & Suara
+                </h3>
+                <div id="music-output" class="text-gray-300"></div>
+            </div>
+
+            <!-- Extra Tips -->
+            <div class="result-card bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f00f5b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a4.5 4.5 0 1 0 9 0 4.5 4.5 0 1 0-9 0M17.5 17.5 19 19l-1.5 1.5"/><path d="M13 3a4.5 4.5 0 1 0 9 0 4.5 4.5 0 1 0-9 0M3 7l1.5-1.5L6 7"/><path d="m18 21 1.5-1.5L21 21"/><path d="m4 16 1.5 1.5L7 16"/><path d="m18 3 1.5 1.5L21 3"/></svg>
+                    Tips Tambahan
+                </h3>
+                <div id="tips-output" class="text-gray-300"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('trend-form');
+        const nicheInput = document.getElementById('niche-input');
+        const searchButton = document.getElementById('search-button');
+        const loader = document.getElementById('loader-container');
+        const resultsContainer = document.getElementById('results-container');
+        const errorMessage = document.getElementById('error-message');
+        const keywordsOutput = document.getElementById('keywords-output');
+        const contentOutput = document.getElementById('content-output');
+        const musicOutput = document.getElementById('music-output');
+        const tipsOutput = document.getElementById('tips-output');
+        
+        // --- Form Submission Handler ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const niche = nicheInput.value.trim();
+
+            if (!niche) {
+                errorMessage.classList.remove('hidden');
+                nicheInput.classList.add('border-red-500');
+                return;
+            }
+
+            resetUIForNewSearch();
+
+            try {
+                // Prompt for Gemini
+                const prompt = `
+                    Anda adalah seorang ahli strategi media sosial khusus TikTok.
+                    Berikan analisis tren dan rekomendasi komprehensif untuk niche: "${niche}".
+                    Berikan jawaban dalam format yang jelas dan terstruktur menggunakan Markdown.
+                    Sertakan bagian-bagian berikut:
+
+                    ### Keyword & Hashtag
+                    (Sajikan dalam format bullet point. Berikan campuran hashtag populer, niche, dan spesifik.)
+
+                    ### Ide Konten Viral
+                    (Berikan 3-4 ide konten video yang konkret. Setiap ide HARUS dimulai dengan '* '. Untuk setiap ide, berikan judul yang menarik dalam format **Judul** dan deskripsi singkat konsepnya.)
+
+                    ### Musik & Suara
+                    (Jelaskan JENIS musik atau suara yang sedang tren dan cocok untuk niche "${niche}". Jangan berikan link, tapi deskripsikan vibe-nya.)
+
+                    ### Tips Tambahan
+                    (Berikan 2-3 tips tambahan spesifik untuk niche "${niche}" dalam format bullet point.)
+                `;
+
+                // Call Gemini API for text suggestions
+                const text = await callGeminiAPI(prompt);
+                displayResults(text);
+
+            } catch (error) {
+                console.error('Error:', error);
+                handleAPIError(error.message);
+            } finally {
+                finalizeSearch();
+            }
+        });
+
+        // --- UI Update Functions ---
+        function resetUIForNewSearch() {
+            errorMessage.classList.add('hidden');
+            nicheInput.classList.remove('border-red-500');
+            resultsContainer.classList.add('hidden');
+            loader.classList.remove('hidden');
+            searchButton.disabled = true;
+            searchButton.classList.add('opacity-50', 'cursor-not-allowed');
+            contentOutput.innerHTML = ''; // Clear previous results
+        }
+
+        function finalizeSearch() {
+            loader.classList.add('hidden');
+            searchButton.disabled = false;
+            searchButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function handleAPIError(message) {
+             resultsContainer.classList.remove('hidden');
+             keywordsOutput.innerHTML = `<p class="text-red-400">Terjadi kesalahan saat mengambil data. Silakan coba lagi nanti. Detail: ${message}</p>`;
+             contentOutput.innerHTML = '';
+             musicOutput.innerHTML = '';
+             tipsOutput.innerHTML = '';
+        }
+
+        // --- API Call Functions ---
+        async function callGeminiAPI(prompt) {
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // API Key will be handled by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+            
+            const result = await response.json();
+            if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error('No content received from AI.');
+            }
+        }
+        
+        async function generateImage(prompt, buttonElement) {
+            const ideaContainer = buttonElement.closest('.content-idea');
+            const imageContainer = ideaContainer.querySelector('.image-container');
+            const imageLoader = ideaContainer.querySelector('.image-loader-container');
+
+            buttonElement.disabled = true;
+            buttonElement.classList.add('opacity-50');
+            imageLoader.classList.remove('hidden');
+            imageContainer.innerHTML = ''; // Clear previous image
+
+            // Enhancing prompt for better image generation
+            const imagePrompt = `Cinematic photo, high detail, for a viral TikTok video about: ${prompt}. Professional color grading, sharp focus.`;
+
+            try {
+                const payload = { instances: [{ prompt: imagePrompt }], parameters: { "sampleCount": 1 } };
+                const apiKey = ""; // API Key will be handled by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`Image API failed with status ${response.status}`);
+                
+                const result = await response.json();
+                if (result.predictions?.[0]?.bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    imageContainer.innerHTML = `<img src="${imageUrl}" alt="AI generated visual for the content idea" class="mt-4 rounded-lg w-full h-auto shadow-lg">`;
+                } else {
+                    throw new Error('No image data in API response.');
+                }
+            } catch (error) {
+                console.error("Image Generation Error:", error);
+                imageContainer.innerHTML = `<p class="text-red-400 text-sm mt-2">Gagal membuat gambar. ${error.message}</p>`;
+            } finally {
+                imageLoader.classList.add('hidden');
+                buttonElement.remove(); // Remove button after use
+            }
+        }
+
+        // --- Result Parsing and Display ---
+        function displayResults(text) {
+            const sections = {
+                keywords: text.split('### Ide Konten Viral')[0].replace('### Keyword & Hashtag', '').trim(),
+                content: text.split('### Musik & Suara')[0].split('### Ide Konten Viral')[1]?.trim(),
+                music: text.split('### Tips Tambahan')[0].split('### Musik & Suara')[1]?.trim(),
+                tips: text.split('### Tips Tambahan')[1]?.trim()
+            };
+
+            keywordsOutput.innerHTML = formatMarkdownList(sections.keywords);
+            musicOutput.innerHTML = formatMarkdownList(sections.music);
+            tipsOutput.innerHTML = formatMarkdownList(sections.tips);
+            
+            // Special handling for content ideas to add buttons
+            displayContentIdeas(sections.content);
+
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function displayContentIdeas(contentSection) {
+            contentOutput.innerHTML = ''; // Clear previous content
+            if (!contentSection) return;
+
+            const ideas = contentSection.split('* ').filter(idea => idea.trim() !== '');
+            
+            ideas.forEach((ideaText, index) => {
+                const cleanText = ideaText.trim();
+                const ideaElement = document.createElement('div');
+                ideaElement.className = 'content-idea';
+
+                const textHtml = formatMarkdown(cleanText);
+
+                ideaElement.innerHTML = `
+                    <div>${textHtml}</div>
+                    <div class="mt-4">
+                        <button class="generate-image-btn bg-teal-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-600 transition-colors text-sm flex items-center" data-prompt="${cleanText.replace(/"/g, '&quot;')}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-image mr-2" viewBox="0 0 16 16"><path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/><path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/></svg>
+                            Buat Visual AI
+                        </button>
+                    </div>
+                    <div class="image-loader-container hidden mt-2 flex items-center">
+                        <div class="image-loader"></div>
+                        <span class="ml-2 text-gray-400 text-sm">AI sedang menggambar...</span>
+                    </div>
+                    <div class="image-container mt-2"></div>
+                `;
+                contentOutput.appendChild(ideaElement);
+            });
+        }
+        
+        function formatMarkdown(text) {
+             let html = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-pink-400">$1</strong>');
+             return html.replace(/\n/g, '<br>');
+        }
+        
+        function formatMarkdownList(text) {
+            if (!text) return '';
+            const items = text.split('* ').filter(item => item.trim() !== '');
+            if (items.length === 0) return formatMarkdown(text);
+            
+            let listHtml = '<ul class="list-disc list-inside space-y-2">';
+            items.forEach(item => {
+                listHtml += `<li>${formatMarkdown(item.trim())}</li>`;
+            });
+            listHtml += '</ul>';
+            return listHtml;
+        }
+
+        // --- Event Delegation for Generate Image Buttons ---
+        contentOutput.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('generate-image-btn')) {
+                const prompt = e.target.dataset.prompt;
+                generateImage(prompt, e.target);
+            }
+        });
+
+    </script>
+</body>
+</html>
